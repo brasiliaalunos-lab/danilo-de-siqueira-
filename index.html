@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LingoWorld - Aprenda Idiomas Gratuitamente</title>
+  <!-- Tailwind CSS para utilitários responsivos -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome para Ícones -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Fonte Nunito (similar à fonte oficial do Duolingo) -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            duoGreen: '#58cc02',
+            duoGreenDark: '#46a302',
+            duoBlue: '#1cb0f6',
+            duoBlueDark: '#1899d6',
+            duoRed: '#ff4b4b',
+            duoRedDark: '#ea2b2b',
+            duoYellow: '#ffc800',
+            duoYellowDark: '#e5b200',
+            duoPurple: '#ce82ff',
+            duoPurpleDark: '#b05ee8',
+            duoGrayLight: '#f7f7f7',
+            duoGrayBorder: '#e5e5e5',
+            duoDarkText: '#4b4b4b'
+          },
+          fontFamily: {
+            sans: ['Nunito', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #ffffff;
+      color: #4b4b4b;
+    }
+
+    /* Botões estilo 3D Duolingo */
+    .btn-3d {
+      transition: all 0.1s ease;
+      position: relative;
+    }
+    .btn-3d:active {
+      transform: translateY(4px);
+      box-shadow: none !important;
+    }
+
+    .btn-duo-green {
+      background-color: #58cc02;
+      box-shadow: 0 4px 0 #46a302;
+      color: white;
+    }
+    .btn-duo-green:hover { background-color: #61e002; }
+
+    .btn-duo-blue {
+      background-color: #1cb0f6;
+      box-shadow: 0 4px 0 #1899d6;
+      color: white;
+    }
+    .btn-duo-blue:hover { background-color: #2bb8ff; }
+
+    .btn-duo-gray {
+      background-color: #ffffff;
+      border: 2px solid #e5e5e5;
+      box-shadow: 0 4px 0 #e5e5e5;
+      color: #4b4b4b;
+    }
+    .btn-duo-gray:hover { background-color: #f7f7f7; }
+
+    .btn-duo-red {
+      background-color: #ff4b4b;
+      box-shadow: 0 4px 0 #ea2b2b;
+      color: white;
+    }
+
+    /* Card de Bloco de Palavra (Word Tile) */
+    .word-tile {
+      background: white;
+      border: 2px solid #e5e5e5;
+      box-shadow: 0 4px 0 #e5e5e5;
+      border-radius: 12px;
+      padding: 10px 18px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-block;
+      margin: 4px;
+      transition: all 0.1s;
+    }
+    .word-tile:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #e5e5e5;
+    }
+    .word-tile.selected {
+      background: #e5e5e5;
+      color: transparent;
+      border-color: #e5e5e5;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    /* Animação do mascote */
+    @keyframes duoBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    .animate-bounce-slow {
+      animation: duoBounce 2s infinite ease-in-out;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #bbb; }
+  </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden bg-white">
+
+  <!-- ================= SIDEBAR (DESKTOP / MOBILE) ================= -->
+  <aside id="sidebar" class="w-full md:w-64 border-r-2 border-duoGrayBorder flex flex-col justify-between p-4 bg-white z-20 md:h-full">
+    <div>
+      <!-- Logo -->
+      <div class="flex items-center gap-2 px-4 py-2 cursor-pointer" onclick="showSection('learn')">
+        <span class="text-4xl">🦉</span>
+        <span class="text-3xl font-extrabold tracking-wide text-duoGreen">lingoworld</span>
+      </div>
+
+      <!-- Menu Principal -->
+      <nav class="mt-6 flex flex-row md:flex-col justify-around md:justify-start gap-2">
+        <button id="nav-learn" onclick="showSection('learn')" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-xl font-extrabold uppercase text-xs tracking-wider text-duoGreen border-2 border-duoGreen bg-green-50 w-full text-left">
+          <i class="fa-solid fa-house text-xl"></i> <span class="hidden md:inline">Aprender</span>
+        </button>
+        <button id="nav-languages" onclick="showSection('languages')" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-xl font-extrabold uppercase text-xs tracking-wider text-gray-500 hover:bg-gray-100 w-full text-left">
+          <i class="fa-solid fa-language text-xl"></i> <span class="hidden md:inline">Idiomas (+100)</span>
+        </button>
+        <button id="nav-shop" onclick="showSection('shop')" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-xl font-extrabold uppercase text-xs tracking-wider text-gray-500 hover:bg-gray-100 w-full text-left">
+          <i class="fa-solid fa-store text-xl"></i> <span class="hidden md:inline">Loja</span>
+        </button>
+        <button id="nav-profile" onclick="showSection('profile')" class="nav-btn flex items-center gap-4 px-4 py-3 rounded-xl font-extrabold uppercase text-xs tracking-wider text-gray-500 hover:bg-gray-100 w-full text-left">
+          <i class="fa-solid fa-user text-xl"></i> <span class="hidden md:inline">Perfil</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Idioma Atual Selecionado (Footer da Sidebar) -->
+    <div class="hidden md:flex items-center gap-3 p-3 bg-gray-50 rounded-xl border-2 border-duoGrayBorder cursor-pointer hover:bg-gray-100 transition-all" onclick="showSection('languages')">
+      <span id="current-flag" class="text-3xl">🇺🇸</span>
+      <div>
+        <p class="text-xs text-gray-400 font-bold uppercase">Aprendendo</p>
+        <p id="current-lang-name" class="font-extrabold text-sm text-gray-700">Inglês</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= ÁREA DE CONTEÚDO PRINCIPAL ================= -->
+  <main class="flex-1 flex flex-col h-full overflow-y-auto bg-white relative">
+
+    <!-- CABEÇALHO SUPERIOR FIXO (GAMIFICAÇÃO & ESTATÍSTICAS) -->
+    <header id="top-bar" class="sticky top-0 bg-white/95 backdrop-blur border-b-2 border-duoGrayBorder px-6 py-3 flex justify-between items-center z-10">
+      <!-- Seletor Rápido de Idioma -->
+      <button onclick="showSection('languages')" class="flex items-center gap-2 font-bold text-gray-600 hover:bg-gray-100 p-2 rounded-xl border border-gray-200">
+        <span id="top-flag" class="text-2xl">🇺🇸</span>
+        <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+      </button>
+
+      <!-- Status Counters -->
+      <div class="flex items-center gap-5 font-black text-sm md:text-base">
+        <!-- Sequência (Streak) -->
+        <div class="flex items-center gap-1.5 text-orange-500" title="Sequência de dias praticados">
+          <i class="fa-solid fa-fire text-xl animate-pulse"></i>
+          <span id="streak-count">1</span>
+        </div>
+        <!-- Gemas (Lingots) -->
+        <div class="flex items-center gap-1.5 text-duoBlue" title="Sua quantidade de Gemas">
+          <i class="fa-solid fa-gem text-xl"></i>
+          <span id="gems-count">500</span>
+        </div>
+        <!-- Corações (Vidas) -->
+        <div class="flex items-center gap-1.5 text-duoRed" title="Vidas disponíveis">
+          <i class="fa-solid fa-heart text-xl"></i>
+          <span id="hearts-count">5</span>
+        </div>
+        <!-- Pontos XP -->
+        <div class="flex items-center gap-1.5 text-duoYellow" title="Experiência acumulada">
+          <i class="fa-solid fa-bolt text-xl"></i>
+          <span id="xp-count">120</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SEÇÃO 1: TRILHA DE APRENDIZADO (MAPA DE LIÇÕES) -->
+    <section id="sec-learn" class="p-6 max-w-2xl mx-auto w-full flex flex-col items-center">
+      
+      <!-- Header da Unidade 1 -->
+      <div class="w-full bg-duoGreen text-white p-5 rounded-2xl mb-8 flex justify-between items-center shadow-md">
+        <div>
+          <h2 class="text-2xl font-black uppercase">Unidade 1</h2>
+          <p class="font-extrabold opacity-90">Fundamentos Básicos & Frases Cotidianas</p>
+        </div>
+        <button class="bg-white/20 hover:bg-white/30 p-3 rounded-xl border-2 border-white/40 font-bold" title="Guia da Unidade">
+          <i class="fa-solid fa-book text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Trilha de Lições Interativas Estilo Duolingo -->
+      <div id="unit-path" class="flex flex-col items-center gap-6 my-4 w-full relative">
+        <!-- Nós de lições gerados via JS -->
+      </div>
+    </section>
+
+    <!-- SEÇÃO 2: SELEÇÃO DE IDIOMAS (+100 IDIOMAS) -->
+    <section id="sec-languages" class="hidden p-6 max-w-4xl mx-auto w-full">
+      <h1 class="text-3xl font-black text-gray-800 mb-2">Qual idioma você quer aprender?</h1>
+      <p class="text-gray-500 font-bold mb-6">Oferecemos cursos para mais de 100 idiomas do mundo inteiro.</p>
+
+      <!-- Barra de Busca -->
+      <div class="relative mb-6">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+        <input type="text" id="lang-search" oninput="filterLanguages()" placeholder="Buscar idioma (ex: Inglês, Japonês, Alemão, Esperanto)..." class="w-full pl-11 pr-4 py-3 rounded-2xl border-2 border-duoGrayBorder font-bold text-gray-700 focus:outline-none focus:border-duoBlue">
+      </div>
+
+      <!-- Grid de Idiomas Principais -->
+      <h2 class="text-xl font-extrabold text-gray-700 mb-4">Cursos Em Destaque</h2>
+      <div id="languages-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <!-- Injetado por JS -->
+      </div>
+
+      <!-- Outros Idiomas (+100) -->
+      <h2 class="text-xl font-extrabold text-gray-700 mb-4">Todos os Outros Idiomas (+100)</h2>
+      <div id="more-languages-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+        <!-- Injetado por JS -->
+      </div>
+    </section>
+
+    <!-- SEÇÃO 3: LOJA DE GEMAS E VIDAS -->
+    <section id="sec-shop" class="hidden p-6 max-w-2xl mx-auto w-full">
+      <h1 class="text-3xl font-black text-gray-800 mb-6">Loja Lingot 💎</h1>
+      
+      <div class="space-y-4">
+        <!-- Item 1: Recarregar Vidas -->
+        <div class="flex items-center justify-between p-4 border-2 border-duoGrayBorder rounded-2xl">
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-heart text-duoRed text-4xl"></i>
+            <div>
+              <h3 class="font-extrabold text-lg text-gray-800">Recarregar Vidas</h3>
+              <p class="text-sm font-semibold text-gray-500">Recupere todos os seus 5 corações imediatamente.</p>
+            </div>
+          </div>
+          <button onclick="buyHearts()" class="btn-3d btn-duo-blue font-extrabold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+            <i class="fa-solid fa-gem"></i> 200
+          </button>
+        </div>
+
+        <!-- Item 2: Bloqueio de Sequência -->
+        <div class="flex items-center justify-between p-4 border-2 border-duoGrayBorder rounded-2xl">
+          <div class="flex items-center gap-4">
+            <i class="fa-solid fa-shield-halved text-duoBlue text-4xl"></i>
+            <div>
+              <h3 class="font-extrabold text-lg text-gray-800">Bloqueio de Sequência</h3>
+              <p class="text-sm font-semibold text-gray-500">Proteja sua sequência caso perca um dia de treino.</p>
+            </div>
+          </div>
+          <button onclick="buyStreakFreeze()" class="btn-3d btn-duo-blue font-extrabold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+            <i class="fa-solid fa-gem"></i> 400
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEÇÃO 4: PERFIL DE USUÁRIO -->
+    <section id="sec-profile" class="hidden p-6 max-w-2xl mx-auto w-full">
+      <div class="flex items-center gap-6 border-b-2 border-duoGrayBorder pb-6 mb-6">
+        <div class="w-24 h-24 rounded-full bg-duoGreen text-white flex items-center justify-center text-5xl font-black border-4 border-duoGreenDark">
+          🦉
+        </div>
+        <div>
+          <h1 class="text-3xl font-black text-gray-800">Estudante Poliglota</h1>
+          <p class="text-gray-400 font-bold">Membro ativo no LingoWorld</p>
+        </div>
+      </div>
+
+      <h2 class="text-2xl font-black text-gray-800 mb-4">Estatísticas do Estudante</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="border-2 border-duoGrayBorder p-4 rounded-2xl flex items-center gap-4">
+          <i class="fa-solid fa-fire text-orange-500 text-3xl"></i>
+          <div>
+            <span id="profile-streak" class="font-black text-2xl text-gray-800">1</span>
+            <p class="text-xs font-bold text-gray-400 uppercase">Dias em Sequência</p>
+          </div>
+        </div>
+        <div class="border-2 border-duoGrayBorder p-4 rounded-2xl flex items-center gap-4">
+          <i class="fa-solid fa-bolt text-duoYellow text-3xl"></i>
+          <div>
+            <span id="profile-xp" class="font-black text-2xl text-gray-800">120</span>
+            <p class="text-xs font-bold text-gray-400 uppercase">XP Total</p>
+          </div>
+        </div>
+        <div class="border-2 border-duoGrayBorder p-4 rounded-2xl flex items-center gap-4">
+          <i class="fa-solid fa-gem text-duoBlue text-3xl"></i>
+          <div>
+            <span id="profile-gems" class="font-black text-2xl text-gray-800">500</span>
+            <p class="text-xs font-bold text-gray-400 uppercase">Gemas Coletadas</p>
+          </div>
+        </div>
+        <div class="border-2 border-duoGrayBorder p-4 rounded-2xl flex items-center gap-4">
+          <i class="fa-solid fa-trophy text-duoPurple text-3xl"></i>
+          <div>
+            <span id="profile-lessons" class="font-black text-2xl text-gray-800">0</span>
+            <p class="text-xs font-bold text-gray-400 uppercase">Lições Feitas</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODAL FULLSCREEN DE LIÇÃO & EXERCÍCIOS ================= -->
+  <div id="lesson-modal" class="fixed inset-0 bg-white z-50 hidden flex-col justify-between">
+    
+    <!-- Topo da Lição -->
+    <div class="p-6 max-w-4xl mx-auto w-full flex items-center justify-between gap-4">
+      <button onclick="quitLesson()" class="text-gray-400 hover:text-gray-600 text-2xl font-bold">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <!-- Barra de Progresso do Exercício -->
+      <div class="flex-1 bg-gray-200 h-4 rounded-full overflow-hidden">
+        <div id="lesson-progress" class="bg-duoGreen h-full w-0 transition-all duration-300 rounded-full"></div>
+      </div>
+      <!-- Corações restantes -->
+      <div class="flex items-center gap-1.5 text-duoRed font-black">
+        <i class="fa-solid fa-heart text-xl"></i>
+        <span id="lesson-hearts">5</span>
+      </div>
+    </div>
+
+    <!-- Container do Exercício Ativo -->
+    <div class="flex-1 max-w-2xl mx-auto w-full px-6 flex flex-col justify-center items-center">
+      
+      <!-- Título do Exercício -->
+      <h2 id="exercise-title" class="text-2xl md:text-3xl font-black text-gray-800 mb-6 text-left w-full">
+        Traduza esta frase
+      </h2>
+
+      <!-- Card do Prompt com Áudio -->
+      <div class="flex items-center gap-4 mb-8 w-full bg-gray-50 p-4 rounded-2xl border-2 border-duoGrayBorder">
+        <button onclick="speakCurrentText()" class="btn-3d btn-duo-blue w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0" title="Ouvir pronúncia">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <span id="exercise-prompt-text" class="text-xl font-extrabold text-gray-700">Hello, how are you?</span>
+      </div>
+
+      <!-- ÁREA DINÂMICA INTERATIVA -->
+      <div id="exercise-interactive-area" class="w-full flex flex-col items-center">
+        <!-- Conteúdo dos exercícios renderizado por JS -->
+      </div>
+
+    </div>
+
+    <!-- FOOTER DA LIÇÃO (PAINEL DE VERIFICAÇÃO / FEEDBACK) -->
+    <div id="lesson-footer" class="border-t-2 border-duoGrayBorder p-6 bg-white transition-colors duration-200">
+      <div class="max-w-4xl mx-auto flex justify-between items-center">
+        <div id="feedback-message" class="hidden items-center gap-4">
+          <div id="feedback-icon" class="w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black">
+            ✓
+          </div>
+          <div>
+            <h3 id="feedback-title" class="font-black text-xl">Bom trabalho!</h3>
+            <p id="feedback-sub" class="text-sm font-bold opacity-80">Sua resposta está correta.</p>
+          </div>
+        </div>
+        <button id="check-btn" onclick="checkAnswer()" class="btn-3d btn-duo-green px-8 py-3 rounded-2xl font-black uppercase text-base tracking-wider ml-auto">
+          Verificar
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================= MODAL CELEBRAÇÃO FIM DE LIÇÃO ================= -->
+  <div id="completion-modal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center flex flex-col items-center shadow-2xl">
+      <div class="text-7xl animate-bounce-slow mb-4">🦉🎉</div>
+      <h2 class="text-3xl font-black text-duoYellow mb-2">Lição Concluída!</h2>
+      <p class="text-gray-500 font-bold mb-6">Excelente trabalho! Você praticou seu novo idioma com sucesso.</p>
+
+      <div class="grid grid-cols-2 gap-4 w-full mb-6">
+        <div class="border-2 border-duoYellow bg-yellow-50 p-4 rounded-2xl">
+          <p class="text-xs font-black uppercase text-duoYellowDark">XP Ganho</p>
+          <p id="earned-xp-text" class="text-2xl font-black text-gray-800">+20 XP</p>
+        </div>
+        <div class="border-2 border-duoBlue bg-blue-50 p-4 rounded-2xl">
+          <p class="text-xs font-black uppercase text-duoBlueDark">Gemas Ganhas</p>
+          <p id="earned-gems-text" class="text-2xl font-black text-gray-800">+10 💎</p>
+        </div>
+      </div>
+
+      <button onclick="closeCompletionModal()" class="btn-3d btn-duo-green w-full py-4 rounded-2xl font-black uppercase tracking-wider text-lg">
+        Continuar
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ================= LÓGICA JAVASCRIPT DA APLICAÇÃO ================= -->
+  <script>
+    /* ------------ ESTADO GLOBAL COM SUPORTE A LOCALSTORAGE ------------ */
+    const defaultState = {
+      streak: 1,
+      gems: 500,
+      hearts: 5,
+      xp: 120,
+      completedLessonsCount: 0,
+      completedNodes: [],
+      currentLanguage: { code: 'en-US', name: 'Inglês', flag: '🇺🇸' },
+      currentLessonKey: null,
+      currentLesson: null,
+      currentQuestionIdx: 0,
+      selectedWords: [],
+      selectedOption: null,
+      typedAnswer: ''
+    };
+
+    let state = loadSavedState();
+
+    function loadSavedState() {
+      try {
+        const saved = localStorage.getItem('lingoworld_state');
+        if (saved) return { ...defaultState, ...JSON.parse(saved) };
+      } catch (e) {
+        console.warn("Não foi possível carregar do localStorage.");
+      }
+      return { ...defaultState };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem('lingoworld_state', JSON.stringify({
+          streak: state.streak,
+          gems: state.gems,
+          hearts: state.hearts,
+          xp: state.xp,
+          completedLessonsCount: state.completedLessonsCount,
+          completedNodes: state.completedNodes,
+          currentLanguage: state.currentLanguage
+        }));
+      } catch (e) {
+        console.warn("Não foi possível salvar no localStorage.");
+      }
+    }
+
+    /* ------------ CATALOGO COMPLETO DE IDIOMAS DA APLICAÇÃO ------------ */
+    const popularLanguages = [
+      { code: 'en-US', name: 'Inglês', flag: '🇺🇸' },
+      { code: 'es-ES', name: 'Espanhol', flag: '🇪🇸' },
+      { code: 'fr-FR', name: 'Francês', flag: '🇫🇷' },
+      { code: 'de-DE', name: 'Alemão', flag: '🇩🇪' },
+      { code: 'it-IT', name: 'Italiano', flag: '🇮🇹' },
+      { code: 'ja-JP', name: 'Japonês', flag: '🇯🇵' },
+      { code: 'zh-CN', name: 'Mandarim', flag: '🇨🇳' },
+      { code: 'ko-KR', name: 'Coreano', flag: '🇰🇷' },
+      { code: 'ru-RU', name: 'Russo', flag: '🇷🇺' },
+      { code: 'pt-PT', name: 'Português (PT)', flag: '🇵🇹' }
+    ];
+
+    const extendedLanguagesList = [
+      { code: 'ar-SA', name: 'Árabe', flag: '🇸🇦' },
+      { code: 'nl-NL', name: 'Holandês', flag: '🇳🇱' },
+      { code: 'pl-PL', name: 'Polonês', flag: '🇵🇱' },
+      { code: 'sv-SE', name: 'Sueco', flag: '🇸🇪' },
+      { code: 'el-GR', name: 'Grego', flag: '🇬🇷' },
+      { code: 'tr-TR', name: 'Turco', flag: '🇹🇷' },
+      { code: 'he-IL', name: 'Hebraico', flag: '🇮🇱' },
+      { code: 'hi-IN', name: 'Hindi', flag: '🇮🇳' },
+      { code: 'th-TH', name: 'Tailandês', flag: '🇹🇭' },
+      { code: 'vi-VN', name: 'Vietnamita', flag: '🇻🇳' },
+      { code: 'uk-UA', name: 'Ucraniano', flag: '🇺🇦' },
+      { code: 'cs-CZ', name: 'Tcheco', flag: '🇨🇿' },
+      { code: 'da-DK', name: 'Danês', flag: '🇩🇰' },
+      { code: 'fi-FI', name: 'Finlandês', flag: '🇫🇮' },
+      { code: 'no-NO', name: 'Norueguês', flag: '🇳🇴' },
+      { code: 'hu-HU', name: 'Húngaro', flag: '🇭🇺' },
+      { code: 'ro-RO', name: 'Romeno', flag: '🇷🇴' },
+      { code: 'id-ID', name: 'Indonésio', flag: '🇮🇩' },
+      { code: 'sk-SK', name: 'Eslovaco', flag: '🇸🇰' },
+      { code: 'bg-BG', name: 'Búlgaro', flag: '🇧🇬' },
+      { code: 'ca-ES', name: 'Catalão', flag: '🇪🇸' },
+      { code: 'hr-HR', name: 'Croata', flag: '🇭🇷' },
+      { code: 'la', name: 'Latim', flag: '🏛️' },
+      { code: 'eo', name: 'Esperanto', flag: '🟢' },
+      { code: 'sw-KE', name: 'Suaíli', flag: '🇰🇪' },
+      { code: 'ms-MY', name: 'Malaio', flag: '🇲🇾' },
+      { code: 'lt-LT', name: 'Lituano', flag: '🇱🇹' },
+      { code: 'ga-IE', name: 'Gaelico Irlandês', flag: '🇮🇪' }
+    ];
+
+    // Gerador de suporte total a +100 Idiomas simulados para o catálogo
+    const extraNames = [
+      "Africâner", "Albanês", "Aramaico", "Armênio", "Azeri", "Basco", "Bielorrusso", 
+      "Birmanês", "Bósnio", "Cevano", "Cingalês", "Coreano (Dialeto)", "Córsego", "Estoniano", 
+      "Filipino", "Frísio", "Gaelico Escocês", "Galego", "Galês", "Georgiano", "Gaujarati", 
+      "Haitiano", "Hauçá", "Havaiano", "Hmong", "Iídiche", "Igbo", "Islandês", "Javanês", 
+      "Kannada", "Cazaque", "Khmer", "Kurdish", "Quirguiz", "Laosiano", "Letão", "Luxemburguês", 
+      "Macedônio", "Malagaxe", "Malaiala", "Maltês", "Maori", "Marathi", "Mongol", "Nepalês", 
+      "Odia", "Pashto", "Persa", "Punjabi", "Samoano", "Sérvio", "Sesoto", "Shona", "Sindi", 
+      "Somali", "Sundanês", "Tadjique", "Tâmil", "Tártaro", "Telugu", "Turcomeno", "Urdu", 
+      "Uzbeque", "Xhosa", "Iorubá", "Zulu"
+    ];
+
+    extraNames.forEach(name => {
+      extendedLanguagesList.push({ code: 'en-US', name, flag: '🌐' });
+    });
+
+    /* ------------ BASE DE DADOS DE UNIDADES DE APRENDIZADO ------------ */
+    const unitPathNodes = [
+      { id: 'saudacoes', label: 'Saudações', icon: 'fa-star', type: 'green' },
+      { id: 'basico', label: 'Frases Básicas', icon: 'fa-comments', type: 'green' },
+      { id: 'viagem', label: 'Viagem & Transporte', icon: 'fa-plane', type: 'green' },
+      { id: 'comida', label: 'Comida & Restaurante', icon: 'fa-utensils', type: 'green' },
+      { id: 'trabalho', label: 'Trabalho & Estudo', icon: 'fa-briefcase', type: 'green' },
+      { id: 'desafio', label: 'Prova da Unidade', icon: 'fa-trophy', type: 'yellow' }
+    ];
+
+    const lessonsData = {
+      'saudacoes': [
+        {
+          type: 'arrange',
+          title: 'Traduza esta frase',
+          prompt: 'Hello, how are you?',
+          options: ['Olá,', 'como', 'vai', 'você?', 'obrigado', 'café'],
+          correct: 'Olá, como vai você?'
+        },
+        {
+          type: 'choice',
+          title: 'Selecione a tradução correta para "Bom dia"',
+          prompt: 'Good morning',
+          options: ['Good night', 'Good morning', 'Goodbye', 'Hello'],
+          correct: 'Good morning'
+        },
+        {
+          type: 'input',
+          title: 'Escreva em português: "Thank you"',
+          prompt: 'Thank you',
+          correct: 'obrigado'
+        }
+      ],
+      'basico': [
+        {
+          type: 'choice',
+          title: 'O que significa "Yes, please"?',
+          prompt: 'Yes, please',
+          options: ['Sim, por favor', 'Não, obrigado', 'Com licença', 'Até logo'],
+          correct: 'Sim, por favor'
+        },
+        {
+          type: 'arrange',
+          title: 'Traduza esta frase',
+          prompt: 'Excuse me, sorry.',
+          options: ['Com', 'licença,', 'desculpe.', 'obrigado', 'por favor'],
+          correct: 'Com licença, desculpe.'
+        }
+      ],
+      'viagem': [
+        {
+          type: 'arrange',
+          title: 'Traduza esta frase',
+          prompt: 'Where is the hotel?',
+          options: ['Onde', 'fica', 'o', 'hotel?', 'aeroporto', 'táxi'],
+          correct: 'Onde fica o hotel?'
+        },
+        {
+          type: 'choice',
+          title: 'O que significa "Passport"?',
+          prompt: 'Passport',
+          options: ['Passagem', 'Passaporte', 'Mala', 'Hotel'],
+          correct: 'Passaporte'
+        }
+      ],
+      'comida': [
+        {
+          type: 'choice',
+          title: 'Selecione a palavra para "Água"',
+          prompt: 'Water',
+          options: ['Water', 'Bread', 'Apple', 'Milk'],
+          correct: 'Water'
+        },
+        {
+          type: 'arrange',
+          title: 'Traduza esta frase',
+          prompt: 'I want a coffee, please.',
+          options: ['Eu', 'quero', 'um', 'café,', 'por favor.', 'chá'],
+          correct: 'Eu quero um café, por favor.'
+        }
+      ],
+      'trabalho': [
+        {
+          type: 'arrange',
+          title: 'Traduza a frase',
+          prompt: 'I have a job interview.',
+          options: ['Eu', 'tenho', 'uma', 'entrevista', 'de', 'emprego.', 'escola'],
+          correct: 'Eu tenho uma entrevista de emprego.'
+        }
+      ],
+      'desafio': [
+        {
+          type: 'input',
+          title: 'Desafio Final: Traduza "Goodbye"',
+          prompt: 'Goodbye',
+          correct: 'adeus'
+        }
+      ]
+    };
+
+    /* ------------ INICIALIZAÇÃO ------------ */
+    window.onload = () => {
+      renderLanguages();
+      renderSkillPath();
+      updateUI();
+    };
+
+    function updateUI() {
+      document.getElementById('streak-count').innerText = state.streak;
+      document.getElementById('gems-count').innerText = state.gems;
+      document.getElementById('hearts-count').innerText = state.hearts;
+      document.getElementById('xp-count').innerText = state.xp;
+
+      document.getElementById('profile-streak').innerText = state.streak;
+      document.getElementById('profile-xp').innerText = state.xp;
+      document.getElementById('profile-gems').innerText = state.gems;
+      document.getElementById('profile-lessons').innerText = state.completedLessonsCount;
+
+      document.getElementById('current-flag').innerText = state.currentLanguage.flag;
+      document.getElementById('top-flag').innerText = state.currentLanguage.flag;
+      document.getElementById('current-lang-name').innerText = state.currentLanguage.name;
+
+      saveState();
+    }
+
+    /* ------------ NAVEGAÇÃO ------------ */
+    function showSection(secId) {
+      ['learn', 'languages', 'shop', 'profile'].forEach(s => {
+        document.getElementById(`sec-${s}`).classList.add('hidden');
+      });
+      document.getElementById(`sec-${secId}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-duoGreen', 'border-2', 'border-duoGreen', 'bg-green-50');
+        btn.classList.add('text-gray-500');
+      });
+
+      const activeNav = document.getElementById(`nav-${secId}`);
+      if (activeNav) {
+        activeNav.classList.remove('text-gray-500');
+        activeNav.classList.add('text-duoGreen', 'border-2', 'border-duoGreen', 'bg-green-50');
+      }
+    }
+
+    /* ------------ MAPA DE APRENDIZADO (SKILL TREE) ------------ */
+    function renderSkillPath() {
+      const container = document.getElementById('unit-path');
+      container.innerHTML = '';
+
+      unitPathNodes.forEach((node, idx) => {
+        const isCompleted = state.completedNodes.includes(node.id);
+        const isUnlocked = idx === 0 || state.completedNodes.includes(unitPathNodes[idx - 1].id);
+
+        let btnClass = 'btn-duo-gray text-gray-300 opacity-60 cursor-not-allowed';
+        if (isCompleted) {
+          btnClass = 'bg-duoYellow text-white border-4 border-white';
+        } else if (isUnlocked) {
+          btnClass = node.type === 'yellow' ? 'bg-duoYellow text-white border-4 border-white' : 'btn-duo-green border-4 border-white ring-4 ring-duoGreen';
+        }
+
+        // Padrão de ziguezague
+        const offsetClass = idx % 2 === 1 ? '-translate-x-6' : (idx % 2 === 2 ? 'translate-x-6' : '');
+
+        const nodeHTML = `
+          <div class="flex flex-col items-center relative ${offsetClass}">
+            <button onclick="${isUnlocked ? `startLesson('${node.id}')` : 'void(0)'}" class="btn-3d w-20 h-20 rounded-full ${btnClass} flex items-center justify-center text-3xl shadow-lg">
+              <i class="fa-solid ${isCompleted ? 'fa-check text-2xl' : node.icon}"></i>
+            </button>
+            <span class="mt-2 font-extrabold text-xs text-gray-700 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+              ${node.label} ${isCompleted ? '⭐' : ''}
+            </span>
+          </div>
+          ${idx < unitPathNodes.length - 1 ? '<div class="w-2 h-8 bg-gray-200 rounded-full"></div>' : ''}
+        `;
+
+        container.innerHTML += nodeHTML;
+      });
+    }
+
+    /* ------------ SELEÇÃO E BUSCA DE IDIOMAS ------------ */
+    function renderLanguages() {
+      const grid = document.getElementById('languages-grid');
+      grid.innerHTML = popularLanguages.map(l => `
+        <div onclick="selectLanguage('${l.code}', '${l.name}', '${l.flag}')" class="flex items-center gap-4 p-4 border-2 border-duoGrayBorder rounded-2xl cursor-pointer hover:border-duoBlue hover:bg-blue-50 transition-all">
+          <span class="text-4xl">${l.flag}</span>
+          <span class="font-extrabold text-gray-700">${l.name}</span>
+        </div>
+      `).join('');
+
+      const moreGrid = document.getElementById('more-languages-grid');
+      moreGrid.innerHTML = extendedLanguagesList.map(l => `
+        <div onclick="selectLanguage('${l.code}', '${l.name}', '${l.flag}')" class="p-3 border-2 border-duoGrayBorder rounded-xl text-center font-bold text-gray-600 cursor-pointer hover:border-duoBlue hover:bg-blue-50 transition-all">
+          ${l.flag} ${l.name}
+        </div>
+      `).join('');
+    }
+
+    function filterLanguages() {
+      const query = document.getElementById('lang-search').value.toLowerCase();
+      const filteredPopular = popularLanguages.filter(l => l.name.toLowerCase().includes(query));
+      const filteredMore = extendedLanguagesList.filter(l => l.name.toLowerCase().includes(query));
+
+      document.getElementById('languages-grid').innerHTML = filteredPopular.map(l => `
+        <div onclick="selectLanguage('${l.code}', '${l.name}', '${l.flag}')" class="flex items-center gap-4 p-4 border-2 border-duoGrayBorder rounded-2xl cursor-pointer hover:border-duoBlue hover:bg-blue-50">
+          <span class="text-4xl">${l.flag}</span>
+          <span class="font-extrabold text-gray-700">${l.name}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('more-languages-grid').innerHTML = filteredMore.map(l => `
+        <div onclick="selectLanguage('${l.code}', '${l.name}', '${l.flag}')" class="p-3 border-2 border-duoGrayBorder rounded-xl text-center font-bold text-gray-600 cursor-pointer hover:border-duoBlue hover:bg-blue-50">
+          ${l.flag} ${l.name}
+        </div>
+      `).join('');
+    }
+
+    function selectLanguage(code, name, flag) {
+      state.currentLanguage = { code, name, flag };
+      updateUI();
+      showSection('learn');
+    }
+
+    /* ------------ SÍNTESE DE VOZ & SINTETIZADOR AUDIO WEB ------------ */
+    function speakCurrentText() {
+      if (!state.currentLesson) return;
+      const q = state.currentLesson[state.currentQuestionIdx];
+      const utterance = new SpeechSynthesisUtterance(q.prompt);
+      utterance.lang = state.currentLanguage.code;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function playSound(type) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        if (type === 'correct') {
+          osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+          osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+          osc.frequency.setValueAtTime(220, ctx.currentTime); // A3
+          osc.frequency.setValueAtTime(180, ctx.currentTime + 0.1);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.3);
+        }
+      } catch (e) {
+        console.log("Web Audio não suportado.");
+      }
+    }
+
+    /* ------------ INICIAR LIÇÃO E EXERCÍCIOS ------------ */
+    function startLesson(lessonKey) {
+      if (state.hearts <= 0) {
+        alert("Sua energia acabou! Recarregue suas vidas na loja com suas Gemas.");
+        showSection('shop');
+        return;
+      }
+
+      state.currentLessonKey = lessonKey;
+      state.currentLesson = lessonsData[lessonKey] || lessonsData['saudacoes'];
+      state.currentQuestionIdx = 0;
+
+      document.getElementById('lesson-modal').classList.remove('hidden');
+      document.getElementById('lesson-modal').classList.add('flex');
+      
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = state.currentLesson[state.currentQuestionIdx];
+      state.selectedWords = [];
+      state.selectedOption = null;
+      state.typedAnswer = '';
+
+      // Atualizar barra de progresso da lição
+      const pct = (state.currentQuestionIdx / state.currentLesson.length) * 100;
+      document.getElementById('lesson-progress').style.width = `${pct}%`;
+      document.getElementById('lesson-hearts').innerText = state.hearts;
+
+      resetFeedbackUI();
+
+      document.getElementById('exercise-title').innerText = q.title;
+      document.getElementById('exercise-prompt-text').innerText = q.prompt;
+
+      const area = document.getElementById('exercise-interactive-area');
+      area.innerHTML = '';
+
+      speakCurrentText();
+
+      if (q.type === 'arrange') {
+        area.innerHTML = `
+          <div id="selected-words-box" class="w-full min-h-[64px] border-b-2 border-duoGrayBorder flex flex-wrap items-center gap-2 mb-8 p-2"></div>
+          <div id="available-words-box" class="flex flex-wrap justify-center gap-2"></div>
+        `;
+        renderArrangeTiles(q.options);
+      } else if (q.type === 'choice') {
+        area.innerHTML = `
+          <div class="grid grid-cols-2 gap-4 w-full">
+            ${q.options.map(opt => `
+              <button onclick="selectChoiceOption('${opt}', this)" class="choice-btn p-5 border-2 border-duoGrayBorder rounded-2xl font-black text-gray-700 hover:border-duoBlue hover:bg-blue-50 text-center text-lg transition-all">
+                ${opt}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      } else if (q.type === 'input') {
+        area.innerHTML = `
+          <input type="text" id="type-answer-input" placeholder="Digite a tradução correta..." oninput="state.typedAnswer = this.value" class="w-full p-4 border-2 border-duoGrayBorder rounded-2xl font-bold text-gray-700 text-lg focus:outline-none focus:border-duoBlue">
+        `;
+      }
+    }
+
+    /* Word Bank Tile Logic */
+    function renderArrangeTiles(options) {
+      const availableBox = document.getElementById('available-words-box');
+      availableBox.innerHTML = options.map((word, idx) => `
+        <span id="word-${idx}" onclick="toggleWordTile('${word}', ${idx})" class="word-tile">${word}</span>
+      `).join('');
+    }
+
+    function toggleWordTile(word, idx) {
+      const tile = document.getElementById(`word-${idx}`);
+      const selectedBox = document.getElementById('selected-words-box');
+
+      if (tile.classList.contains('selected')) {
+        tile.classList.remove('selected');
+        state.selectedWords = state.selectedWords.filter(w => w.idx !== idx);
+      } else {
+        tile.classList.add('selected');
+        state.selectedWords.push({ word, idx });
+      }
+
+      selectedBox.innerHTML = state.selectedWords.map(w => `
+        <span onclick="toggleWordTile('${w.word}', ${w.idx})" class="word-tile">${w.word}</span>
+      `).join('');
+    }
+
+    function selectChoiceOption(opt, el) {
+      document.querySelectorAll('.choice-btn').forEach(btn => btn.classList.remove('border-duoBlue', 'bg-blue-50'));
+      el.classList.add('border-duoBlue', 'bg-blue-50');
+      state.selectedOption = opt;
+    }
+
+    /* ------------ VERIFICAÇÃO DE RESPOSTA ------------ */
+    function checkAnswer() {
+      const btn = document.getElementById('check-btn');
+
+      if (btn.innerText === 'CONTINUAR') {
+        state.currentQuestionIdx++;
+        if (state.currentQuestionIdx >= state.currentLesson.length) {
+          finishLesson();
+        } else {
+          renderQuestion();
+        }
+        return;
+      }
+
+      const q = state.currentLesson[state.currentQuestionIdx];
+      let isCorrect = false;
+
+      if (q.type === 'arrange') {
+        const userPhrase = state.selectedWords.map(w => w.word).join(' ');
+        isCorrect = userPhrase.trim().toLowerCase() === q.correct.toLowerCase();
+      } else if (q.type === 'choice') {
+        isCorrect = state.selectedOption === q.correct;
+      } else if (q.type === 'input') {
+        isCorrect = state.typedAnswer.trim().toLowerCase() === q.correct.toLowerCase();
+      }
+
+      const footer = document.getElementById('lesson-footer');
+      const feedbackMsg = document.getElementById('feedback-message');
+      const feedbackIcon = document.getElementById('feedback-icon');
+      const feedbackTitle = document.getElementById('feedback-title');
+      const feedbackSub = document.getElementById('feedback-sub');
+
+      feedbackMsg.classList.remove('hidden');
+      feedbackMsg.classList.add('flex');
+
+      if (isCorrect) {
+        playSound('correct');
+        footer.className = 'border-t-2 border-duoGreen bg-green-100 p-6 transition-colors duration-200';
+        feedbackIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black bg-duoGreen';
+        feedbackIcon.innerText = '✓';
+        feedbackTitle.className = 'font-black text-xl text-duoGreenDark';
+        feedbackTitle.innerText = 'Excelente!';
+        feedbackSub.innerText = 'Sua resposta está perfeita.';
+        btn.className = 'btn-3d btn-duo-green px-8 py-3 rounded-2xl font-black uppercase text-base tracking-wider ml-auto';
+      } else {
+        playSound('wrong');
+        state.hearts = Math.max(0, state.hearts - 1);
+        document.getElementById('lesson-hearts').innerText = state.hearts;
+
+        footer.className = 'border-t-2 border-duoRed bg-red-100 p-6 transition-colors duration-200';
+        feedbackIcon.className = 'w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-black bg-duoRed';
+        feedbackIcon.innerText = '✕';
+        feedbackTitle.className = 'font-black text-xl text-duoRedDark';
+        feedbackTitle.innerText = 'Resposta correta:';
+        feedbackSub.innerText = q.correct;
+        btn.className = 'btn-3d btn-duo-red px-8 py-3 rounded-2xl font-black uppercase text-base tracking-wider ml-auto';
+      }
+
+      btn.innerText = 'CONTINUAR';
+    }
+
+    function resetFeedbackUI() {
+      const footer = document.getElementById('lesson-footer');
+      const feedbackMsg = document.getElementById('feedback-message');
+      const btn = document.getElementById('check-btn');
+
+      footer.className = 'border-t-2 border-duoGrayBorder p-6 bg-white transition-colors duration-200';
+      feedbackMsg.classList.add('hidden');
+      feedbackMsg.classList.remove('flex');
+
+      btn.className = 'btn-3d btn-duo-green px-8 py-3 rounded-2xl font-black uppercase text-base tracking-wider ml-auto';
+      btn.innerText = 'VERIFICAR';
+    }
+
+    function quitLesson() {
+      if (confirm("Tem certeza de que deseja sair da lição? Seu progresso será perdido.")) {
+        document.getElementById('lesson-modal').classList.add('hidden');
+        document.getElementById('lesson-modal').classList.remove('flex');
+      }
+    }
+
+    function finishLesson() {
+      document.getElementById('lesson-modal').classList.add('hidden');
+      document.getElementById('lesson-modal').classList.remove('flex');
+
+      // Marcar nó como concluído
+      if (!state.completedNodes.includes(state.currentLessonKey)) {
+        state.completedNodes.push(state.currentLessonKey);
+      }
+
+      state.completedLessonsCount++;
+      state.xp += 20;
+      state.gems += 15;
+
+      updateUI();
+      renderSkillPath();
+
+      document.getElementById('completion-modal').classList.remove('hidden');
+      document.getElementById('completion-modal').classList.add('flex');
+    }
+
+    function closeCompletionModal() {
+      document.getElementById('completion-modal').classList.add('hidden');
+      document.getElementById('completion-modal').classList.remove('flex');
+    }
+
+    /* ------------ LOJA ------------ */
+    function buyHearts() {
+      if (state.gems >= 200) {
+        state.gems -= 200;
+        state.hearts = 5;
+        updateUI();
+        alert("Sua energia foi completamente recarregada!");
+      } else {
+        alert("Você precisa de mais gemas para adquirir vidas!");
+      }
+    }
+
+    function buyStreakFreeze() {
+      if (state.gems >= 400) {
+        state.gems -= 400;
+        updateUI();
+        alert("Bloqueio de sequência ativado com sucesso!");
+      } else {
+        alert("Gemas insuficientes para esta compra!");
+      }
+    }
+  </script>
+</body>
+</html>
